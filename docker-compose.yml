@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-equilens}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-equilens_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - equilens-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  ml-service:
+    build: ./ml-service
+    ports:
+      - "8000:8000"
+
+  research-service:
+    build: ./research-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ml-service:
+        condition: service_started
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-equilens}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-equilens_dev}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      ML_SERVICE_URL: http://ml-service:8000
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+    ports:
+      - "8080:8080"
+
+  portfolio-service:
+    build: ./portfolio-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      research-service:
+        condition: service_started
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-equilens}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-equilens_dev}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      RESEARCH_SERVICE_URL: http://research-service:8080
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+    ports:
+      - "8081:8081"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_RESEARCH_API_URL: http://localhost:8080/api
+        VITE_PORTFOLIO_API_URL: http://localhost:8081/api
+    depends_on:
+      - research-service
+      - portfolio-service
+    ports:
+      - "5173:80"
+
+volumes:
+  equilens-postgres:

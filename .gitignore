@@ -1,0 +1,38 @@
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Java / Maven
+**/target/
+**/*.class
+
+# Node / Vite
+**/node_modules/
+**/dist/
+
+# Python
+**/.venv/
+**/.venv*/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/*.egg-info/
+
+# Flutter
+**/.dart_tool/
+**/build/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+
+# Secrets / local configuration
+.env
+.env.*
+!.env.example
+**/google-services.json
+**/GoogleService-Info.plist
+
+# Generated ML artifacts
+ml-service/artifacts/*.joblib
