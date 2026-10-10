@@ -9,9 +9,9 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 const researchUrl = String.fromEnvironment('RESEARCH_API_URL',
-    defaultValue: 'http://10.0.2.2:8080/api');
+    defaultValue: 'http://localhost:8080/api');
 const portfolioUrl = String.fromEnvironment('PORTFOLIO_API_URL',
-    defaultValue: 'http://10.0.2.2:8081/api');
+    defaultValue: 'http://localhost:8081/api');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
